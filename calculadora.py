@@ -2,20 +2,24 @@ from tkinter import *
 from tkinter import ttk
 import math
 import sympy as sp
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Crear la ventana principal
 root = Tk()
 root.title("CalcMaster")
-root.geometry("400x600+500+800")
+root.geometry("500x700+500+100")
 
 # Crear la barra de menús
 menu_bar = Menu(root)
+
 def open_calculate():
     print("Calcular seleccionado")
 
 def open_Limite():
     graph_window = Toplevel(root)
-    graph_window.title("Saca el limite")
+    graph_window.title("Saca el límite")
     graph_window.geometry("400x300")
     
     label = Label(graph_window, text="Ingrese la expresión (Ejemplo: 3*x**2 + 2)")
@@ -57,7 +61,6 @@ def open_Derivada():
     label = Label(deriv_window, text="Ingrese la expresión (Ejemplo: 3*x**2 * x**3)")
     label.pack(pady=10)
 
-    # Entrada de texto para la expresión
     func_entry = Entry(deriv_window, font=("Arial", 14))
     func_entry.pack(pady=10, padx=10, fill=X)
     
@@ -75,7 +78,6 @@ def open_Derivada():
             
             derivada = sp.diff(expr, x)
             
-
             resultado = derivada.subs(x, x_val)
             
             result_label.config(text=f"Derivada: {derivada}\nValor en x = {x_val}: {resultado}")
@@ -88,9 +90,61 @@ def open_Derivada():
     result_label = Label(deriv_window, text="", font=("Arial", 14))
     result_label.pack(pady=10)
 
+def graficar_funcion():
+    # Crear la ventana para graficar la función
+    graph_window = Toplevel(root)
+    graph_window.title("Gráficar Función")
+    graph_window.geometry("600x500")
+
+    label_graph = Label(graph_window, text="Ingrese la función para graficar (Ejemplo: x**2 + 3*x + 2)")
+    label_graph.pack(pady=10)
+
+    func_graph_entry = Entry(graph_window, font=("Arial", 14))
+    func_graph_entry.pack(pady=10, padx=10, fill=X)
+
+    # Función que grafica la función ingresada
+    def graficar():
+        func_str = func_graph_entry.get()
+        try:
+            # Definir la variable simbólica x
+            x = sp.symbols('x')
+
+            # Convertir la expresión de texto a una expresión de SymPy
+            expr = sp.sympify(func_str)
+
+            # Crear un rango de valores para x (desde -10 hasta 10)
+            x_vals = np.linspace(-10, 10, 400)
+
+            # Evaluar la función para cada valor de x
+            y_vals = np.array([float(expr.subs(x, val)) for val in x_vals])
+
+            # Crear el gráfico
+            fig, ax = plt.subplots(figsize=(5, 4))
+            ax.plot(x_vals, y_vals, label=f'Función: {func_str}')
+            ax.set_xlabel('x')
+            ax.set_ylabel('f(x)')
+            ax.set_title(f'Gráfico de la función')
+            ax.grid(True)
+            ax.legend()
+
+            # Insertar el gráfico en la interfaz de Tkinter
+            canvas = FigureCanvasTkAgg(fig, master=graph_window)
+            canvas.get_tk_widget().pack()
+            canvas.draw()
+        except Exception as e:
+            error_label.config(text="Error en la graficación")
+
+    # Botón para graficar
+    graph_button = Button(graph_window, text="Graficar", command=graficar)
+    graph_button.pack(pady=10)
+
+    error_label = Label(graph_window, text="", font=("Arial", 14))
+    error_label.pack(pady=10)
+
 # Crear el menú "Archivo"
 file_menu = Menu(menu_bar, tearoff=0)
 file_menu.add_command(label="Calcular", command=open_calculate)
+file_menu.add_command(label="Grafica", command=graficar_funcion)
 file_menu.add_command(label="Limite", command=open_Limite)
 file_menu.add_command(label="Derivada", command=open_Derivada)  # Nueva opción para Derivadas
 file_menu.add_separator()  # Separador
@@ -142,7 +196,7 @@ def ingresarvalor(tecla):
             resultado = eval(entrada1.get())  # Evaluar la operación
             entrada2.set(resultado)
         except Exception as e:
-            entrada2.set("Error" + e)  # Mostrar error si algo sale mal
+            entrada2.set("Error" + str(e))  # Mostrar error si algo sale mal
 
 def raizcuadrada():
     """Función para calcular la raíz cuadrada"""
@@ -190,7 +244,6 @@ button_resta = ttk.Button(mainframe, text="-", style="Botones_numeros.TButton", 
 button_suma = ttk.Button(mainframe, text="+", style="Botones_numeros.TButton", command=lambda: ingresarvalor('+'))
 
 button_igual = ttk.Button(mainframe, text="=", style="Botones_numeros.TButton", command=lambda: ingresarvalor('='))
-button_raiz_cuadrada = ttk.Button(mainframe, text="√", style="Botones_numeros.TButton", command=lambda: raizcuadrada())
 
 # Distribución de los botones en la ventana
 button_parentesis1.grid(column=0, row=2, sticky="nsew")
@@ -218,7 +271,6 @@ button_punto.grid(column=2, row=6, sticky="nsew")
 button_resta.grid(column=3, row=6, sticky="nsew")
 
 button_igual.grid(column=0, row=7, columnspan=3, sticky="nsew")
-button_raiz_cuadrada.grid(column=3, row=7, sticky="nsew")
 
 # Configurar las filas y columnas para que se expandan
 for r in range(8):
